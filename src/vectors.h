@@ -1,6 +1,7 @@
 #pragma once
 #include <math.h>
 #include <stdio.h>
+#include <iostream>
 #include <cuda_runtime.h>
 
 
@@ -148,6 +149,7 @@ class Vec2 {
             return std::isnan(x) || std::isnan(y);
         }
 };
+
 __host__ __device__
 inline Vec2 operator*(const float n, const Vec2 &v) {
     return Vec2(v.x * n, v.y * n);
@@ -156,53 +158,242 @@ inline Vec2 operator*(const float n, const Vec2 &v) {
 
 
 class Vec3 {
-    public:
-        float x, y, z;
-        Vec3(){};
-        Vec3 (float x, float y, float z) : x(x), y(y), z(z){}
-        void add(Vec3 v) {
-            x += v.x;
-            y += v.y;
-            z += v.z;
-        }
-        void subtract(Vec3 v) {
-            x -= v.x;
-            y -= v.y;
-            z -= v.z;
-          
-        }
+public:
+    float x, y, z;
 
-        float mag() {
-            return sqrt(x*x + y*y + z*z);
-        }
+    // Constructors
+    __host__ __device__
+    Vec3() : x(0), y(0), z(0) {}
+    __host__ __device__
+    Vec3(float x, float y, float z) : x(x), y(y), z(z) {}
 
-        void scale(float s) {
-            x *= s;
-            y *= s;
-            z *= s;
-            
-        }
+    // Magnitude
+    __host__ __device__
+    float mag() const {
+        return std::sqrt(x*x + y*y + z*z);
+    }
 
-        static Vec3 add(Vec3 v1, Vec3 v2) {
-            return Vec3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
-        }
+    // Normalize
+    __host__ __device__
+    Vec3 normalize() const {
+        float length = mag();
+        if (length == 0.0f) return *this;
+        return Vec3(x / length, y / length, z / length);
+    }
 
-        float dot(Vec3 v){
-            return x * v.x + y * v.y + z * v.z;
-        }
+    // Dot product
+    __host__ __device__
+    float dot(const Vec3& v) const {
+        return x * v.x + y * v.y + z * v.z;
+    }
 
-        Vec3 cross(Vec3& v){
-            return Vec3(
-                y * v.z - v.y * z,
-                x * v.z - v.x * z,
-                x * v.y - v.x * y
-            );
+    // Cross product
+    __host__ __device__
+    Vec3 cross(const Vec3& v) const {
+        return Vec3(
+            y * v.z - z * v.y,
+            z * v.x - x * v.z,
+            x * v.y - y * v.x
+        );
+    }
 
-        }
+    // Scale
+    __host__ __device__
+    void scale(float s) {
+        x *= s; y *= s; z *= s;
+    }
 
-        Vec3 normalize() {
-            float length = mag();
-            return Vec3(x/length, y/length, z/length);
-        }
+    // Add/subtract (in-place)
+    __host__ __device__
+    void add(const Vec3& v) {
+        x += v.x; y += v.y; z += v.z;
+    }
 
+    __host__ __device__
+    void subtract(const Vec3& v) {
+        x -= v.x; y -= v.y; z -= v.z;
+    }
+
+    // Static addition
+    __host__ __device__
+    static Vec3 add(const Vec3& v1, const Vec3& v2) {
+        return Vec3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
+    }
+
+    // --------------------
+    // Operator Overloads
+    // --------------------
+    __host__ __device__
+    Vec3 operator+(const Vec3& v) const { return Vec3(x + v.x, y + v.y, z + v.z); }
+    __host__ __device__
+    Vec3 operator-(const Vec3& v) const { return Vec3(x - v.x, y - v.y, z - v.z); }
+    __host__ __device__
+    Vec3 operator*(float s) const { return Vec3(x * s, y * s, z * s); }
+    __host__ __device__
+    Vec3 operator/(float s) const { return Vec3(x / s, y / s, z / s); }
+
+    __host__ __device__
+    Vec3& operator+=(const Vec3& v) { x += v.x; y += v.y; z += v.z; return *this; }
+    __host__ __device__
+    Vec3& operator-=(const Vec3& v) { x -= v.x; y -= v.y; z -= v.z; return *this; }
+    __host__ __device__
+    Vec3& operator*=(float s) { x *= s; y *= s; z *= s; return *this; }
+    __host__ __device__
+    Vec3& operator/=(float s) { x /= s; y /= s; z /= s; return *this; }
+
+    __host__ __device__
+    bool operator==(const Vec3& v) const { return x == v.x && y == v.y && z == v.z; }
+    __host__ __device__
+    bool operator!=(const Vec3& v) const { return !(*this == v); }
+
+    __host__ __device__
+    friend std::ostream& operator<<(std::ostream& os, const Vec3& v) {
+        os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
+        return os;
+    }
+};
+
+
+
+
+class Vec4 {
+public:
+    float x, y, z, w;
+
+    // Constructors
+    __host__ __device__
+    Vec4() : x(0), y(0), z(0), w(0) {}
+    __host__ __device__
+    Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+
+    // Basic arithmetic methods
+    __host__ __device__
+    void add(const Vec4& v) {
+        x += v.x; y += v.y; z += v.z; w += v.w;
+    }
+
+    __host__ __device__
+    void subtract(const Vec4& v) {
+        x -= v.x; y -= v.y; z -= v.z; w -= v.w;
+    }
+
+    __host__ __device__
+    void scale(float s) {
+        x *= s; y *= s; z *= s; w *= s;
+    }
+
+    __host__ __device__
+    float mag() const {
+        return std::sqrt(x*x + y*y + z*z + w*w);
+    }
+
+    __host__ __device__
+    Vec4 normalize() const {
+        float length = mag();
+        if (length == 0.0f) return *this; // Avoid divide by zero
+        return Vec4(x/length, y/length, z/length, w/length);
+    }
+
+    __host__ __device__
+    float dot(const Vec4& v) const {
+        return x * v.x + y * v.y + z * v.z + w * v.w;
+    }
+
+    __host__ __device__
+    Vec4 cross(const Vec4& v) const {
+        return Vec4(
+            y * v.z - z * v.y,
+            z * v.x - x * v.z,
+            x * v.y - y * v.x,
+            0.0f // Cross product of 3D part; w = 0 for direction
+        );
+    }
+
+    __host__ __device__
+    Vec4 homogenize() const {
+        return (w != 0.0f) ? Vec4(x/w, y/w, z/w, 1.0f) : *this;
+    }
+
+    // Static utility
+    __host__ __device__
+    static Vec4 add(const Vec4& v1, const Vec4& v2) {
+        return Vec4(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w);
+    }
+
+    // --------------------
+    // Operator Overloads
+    // --------------------
+
+    // Add two vectors
+    __host__ __device__
+    Vec4 operator+(const Vec4& v) const {
+        return Vec4(x + v.x, y + v.y, z + v.z, w + v.w);
+    }
+
+    // Subtract two vectors
+    __host__ __device__
+    Vec4 operator-(const Vec4& v) const {
+        return Vec4(x - v.x, y - v.y, z - v.z, w - v.w);
+    }
+
+    // Multiply vector by scalar
+    __host__ __device__
+    Vec4 operator*(float s) const {
+        return Vec4(x * s, y * s, z * s, w * s);
+    }
+
+    // Divide vector by scalar
+    __host__ __device__
+    Vec4 operator/(float s) const {
+        return Vec4(x / s, y / s, z / s, w / s);
+    }
+
+    // Unary minus
+    __host__ __device__
+    Vec4 operator-() const {
+        return Vec4(-x, -y, -z, -w);
+    }
+
+    // Compound assignments
+    __host__ __device__
+    Vec4& operator+=(const Vec4& v) {
+        x += v.x; y += v.y; z += v.z; w += v.w;
+        return *this;
+    }
+
+    __host__ __device__
+    Vec4& operator-=(const Vec4& v) {
+        x -= v.x; y -= v.y; z -= v.z; w -= v.w;
+        return *this;
+    }
+
+    __host__ __device__
+    Vec4& operator*=(float s) {
+        x *= s; y *= s; z *= s; w *= s;
+        return *this;
+    }
+
+    __host__ __device__
+    Vec4& operator/=(float s) {
+        x /= s; y /= s; z /= s; w /= s;
+        return *this;
+    }
+
+    // Equality check
+    __host__ __device__
+    bool operator==(const Vec4& v) const {
+        return x == v.x && y == v.y && z == v.z && w == v.w;
+    }
+
+    __host__ __device__
+    bool operator!=(const Vec4& v) const {
+        return !(*this == v);
+    }
+
+    // Stream output
+    __host__ __device__
+    friend std::ostream& operator<<(std::ostream& os, const Vec4& v) {
+        os << "(" << v.x << ", " << v.y << ", " << v.z << ", " << v.w << ")";
+        return os;
+    }
 };
