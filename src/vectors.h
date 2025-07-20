@@ -395,3 +395,23 @@ public:
         return os;
     }
 };
+
+class Mat4 {
+public:
+    float m[4][4];
+
+    Mat4() {
+        // Identity by default
+        for (int i = 0; i < 4; ++i)
+            for (int j = 0; j < 4; ++j)
+                m[i][j] = (i == j ? 1.0f : 0.0f);
+    }
+
+    static Mat4 identity() {
+        return Mat4();
+    }
+
+    float* data() {
+        return &m[0][0];  // OpenGL compatible
+    }
+};
