@@ -246,7 +246,6 @@ public:
     __host__ __device__
     bool operator!=(const Vec3& v) const { return !(*this == v); }
 
-    __host__ __device__
     friend std::ostream& operator<<(std::ostream& os, const Vec3& v) {
         os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
         return os;
@@ -391,7 +390,6 @@ public:
     }
 
     // Stream output
-    __host__ __device__
     friend std::ostream& operator<<(std::ostream& os, const Vec4& v) {
         os << "(" << v.x << ", " << v.y << ", " << v.z << ", " << v.w << ")";
         return os;
