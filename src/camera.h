@@ -4,7 +4,7 @@
 
 
 
-class MgeCamera {
+class Camera {
 public:
 
 // main functions
