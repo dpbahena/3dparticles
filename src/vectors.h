@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <iostream>
 #include <cuda_runtime.h>
+#include <stdint.h>
+#include <vector>
 
 
 
@@ -414,4 +416,36 @@ public:
     float* data() {
         return &m[0][0];  // OpenGL compatible
     }
+};
+
+typedef struct  {
+    uint32_t  width;
+    uint32_t height;
+}Extent2D;
+
+struct Vertex {
+    Vec3 position;
+    Vec3 color;
+    Vec3 normal{};
+    Vec2 uv{};     // short of 2-Dimensional texture coordinates
+    size_t material_id; 
+
+    bool operator==(const Vertex &other) const {
+        return position == other.position && 
+                    color == other.color && 
+                    normal == other.normal && 
+                        uv == other.uv && 
+            material_id == other.material_id;
+    }
+};
+
+struct Builder {
+    std::vector<Vertex> vertices{};
+    std::vector<uint32_t> indices{};
+    std::vector<uint32_t> textureBuffer;
+    Extent2D extent;
+
+    void loadModel(const std::string &filepath);
+    void loadTexture(const std::string &filepath);
+    
 };
